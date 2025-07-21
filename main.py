@@ -5,16 +5,15 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QStatusBar, QPushButton, QLineEdit,
     QInputDialog, QMessageBox, QLabel, QHeaderView, QMenu
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QPoint, Qt, QSize
+from PyQt6.QtGui import QPalette, QColor, QIcon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import pyqtgraph as pg
 from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-from PyQt6.QtGui import QPalette, QColor, QIcon
-from PyQt6.QtCore import QPoint, Qt, QSize
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
+import pyqtgraph as pg
+import numpy as np
 
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
@@ -23,45 +22,41 @@ plt.rcParams['axes.unicode_minus'] = False
 class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("登录")
+        self.setWindowTitle("Login")
         self.setFixedSize(400, 250)
 
-        # 读取账号文件
+        # Read account File
         self.total_failed_attempts = 0
         self.accounts = self.load_accounts()
 
-        # 创建布局
+        # Create layout
         layout = QVBoxLayout()
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(10)
 
-        # 用户名输入
-        self.username_label = QLabel("用户名：")
+        # Username input
+        self.username_label = QLabel("Username：")
         self.username_input = QLineEdit()
         self.username_input.setMaxLength(20)
         self.username_input.textChanged.connect(self.validate_input)
 
-        # 密码输入
-        self.password_label = QLabel("密码：")
+        # Password input
+        self.password_label = QLabel("Password：")
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.textChanged.connect(self.validate_input)
 
-        # 登录按钮
-        self.login_button = QPushButton("登录")
+        # Login button
+        self.login_button = QPushButton("Login")
         self.login_button.setEnabled(False)
         self.login_button.clicked.connect(self.check_login)
 
-        # 添加到布局
+        # Add to layout
         layout.addWidget(self.username_label)
         layout.addWidget(self.username_input)
         layout.addWidget(self.password_label)
         layout.addWidget(self.password_input)
         layout.addWidget(self.login_button, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # 添加右下方文字
-        self.footer_label = QLabel("刘蕊 0221147010")
-        layout.addWidget(self.footer_label, alignment=Qt.AlignmentFlag.AlignRight)
 
         self.setLayout(layout)
         self.apply_styles()
@@ -122,13 +117,13 @@ class LoginDialog(QDialog):
                         username, password = line.strip().split(":", 1)
                         accounts[username] = password
                     else:
-                        print(f"警告：跳过格式错误的行: {line.strip()}")
+                        print(f"Warning:Skipping malformed line: {line.strip()}")
             return accounts
         except FileNotFoundError:
-            QMessageBox.critical(self, "错误", "账号文件 (user.txt) 未找到！")
+            QMessageBox.critical(self, "Error", "Account file (user.txt) not found！")
             return {}
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"读取账号文件时出错：{str(e)}")
+            QMessageBox.critical(self, "Error", f"Error reading account file：{str(e)}")
             return {}
 
     def validate_input(self):
@@ -141,45 +136,44 @@ class LoginDialog(QDialog):
             self.login_button.setEnabled(False)
 
         if len(password) > 0 and len(password) < 6:
-            self.password_label.setText("密码：(最少6个字符)")
+            self.password_label.setText("Password: (minimum 6 characters)")
         else:
-            self.password_label.setText("密码：")
+            self.password_label.setText("Password:")
 
     def check_login(self):
         username = self.username_input.text()
         password = self.password_input.text()
 
-        # 检查总失败次数
+        # Check total failed attempts
         if self.total_failed_attempts >= 5:
-            QMessageBox.critical(self, "错误",
-                                 "已达到最大尝试次数！\n请重启程序重试。")
-            self.close()  # 关闭登录窗口
+            QMessageBox.critical(self, "Error",
+                                 "Maximum number of attempts reached!\nPlease restart the program to try again.")
+            self.close()  # Close login window
             return
 
-        # 验证账号密码
+        # Validate username and password
         if not self.accounts:
-            QMessageBox.critical(self, "错误", "无法验证账号，请检查账号文件！")
+            QMessageBox.critical(self, "Error", "Unable to validate accounts. Please check the account file!")
             return
 
         if username in self.accounts and self.accounts[username] == password:
-            QMessageBox.information(self, "成功", "登录成功！")
+            QMessageBox.information(self, "Success", "Login successful!")
             self.accept()
         else:
-            # 更新总失败次数
+            # Update total failed attempts
             self.total_failed_attempts += 1
             remaining_attempts = 5 - self.total_failed_attempts
 
             if remaining_attempts <= 0:
-                QMessageBox.critical(self, "错误",
-                                     "已达到最大尝试次数！\n请重启程序重试。")
+                QMessageBox.critical(self, "Error",
+                                     "Maximum number of attempts reached!\nPlease restart the program to try again.")
                 self.close()
             else:
-                QMessageBox.warning(self, "错误",
-                                    f"用户名或密码错误！\n剩余尝试次数：{remaining_attempts}")
+                QMessageBox.warning(self, "Error",
+                                    f"Incorrect username or password!\nRemaining attempts: {remaining_attempts}")
 
             self.password_input.clear()
             self.login_button.setEnabled(False)
-
 
 class FilterHeader(QHeaderView):
     def __init__(self, parent):
@@ -211,7 +205,7 @@ class FilterHeader(QHeaderView):
 
         # Add "Clear Filters" option
         menu.addSeparator()
-        clear_action = menu.addAction("清除筛选")
+        clear_action = menu.addAction("CLear Filters")
         clear_action.triggered.connect(lambda: self.clear_filters(logical_index))
 
         menu.exec(self.mapToGlobal(QPoint(0, self.height())))
@@ -247,41 +241,41 @@ class FilterHeader(QHeaderView):
 class StatisticsWindow(QMainWindow):
     def __init__(self, df):
         super().__init__()
-        self.setWindowTitle("数据统计")
+        self.setWindowTitle("Data Statistics")
         self.setGeometry(100, 100, 800, 600)
 
-        # 创建中央部件
+        # Create central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
 
-        # 创建 matplotlib 画布
+        # Create matplotlib canvas
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
 
-        # 创建 pyqtgraph 部件用于柱状图
+        # Create pyqtgraph widget for bar chart
         self.plot_widget = pg.PlotWidget()
         layout.addWidget(self.plot_widget)
 
-        # 按钮切换图表
+        # Buttons to switch charts
         button_layout = QHBoxLayout()
-        self.pie_button = QPushButton("性别分布饼图")
-        self.bar_button = QPushButton("院系人数柱状图")
+        self.pie_button = QPushButton("Gender Distribution Pie Chart")
+        self.bar_button = QPushButton("Department Population Bar Chart")
         self.pie_button.clicked.connect(lambda: self.plot_pie_chart(df))
         self.bar_button.clicked.connect(lambda: self.plot_bar_chart(df))
         button_layout.addWidget(self.pie_button)
         button_layout.addWidget(self.bar_button)
         layout.addLayout(button_layout)
 
-        # 默认显示饼图
+        # Default to pie chart
         self.plot_pie_chart(df)
 
     def plot_pie_chart(self, df):
         self.plot_widget.hide()
         self.canvas.show()
 
-        gender_counts = df["性别"].value_counts()
+        gender_counts = df["Gender"].value_counts()
         labels = gender_counts.index.tolist()
         sizes = gender_counts.values.tolist()
 
@@ -290,7 +284,7 @@ class StatisticsWindow(QMainWindow):
 
         def func(pct, allvals):
             absolute = int(np.round(pct / 100. * np.sum(allvals)))
-            return f"{pct:.1f}%\n({absolute}人)"
+            return f"{pct:.1f}%\n({absolute} people)"
 
         patches, texts, autotexts = ax.pie(sizes,
                                            labels=labels,
@@ -301,7 +295,7 @@ class StatisticsWindow(QMainWindow):
         plt.setp(autotexts, size=9, weight="bold")
         plt.setp(texts, size=10)
 
-        ax.set_title("性别分布统计", pad=20, size=12, weight="bold")
+        ax.set_title("Gender Distribution Statistics", pad=20, size=12, weight="bold")
         self.canvas.draw()
 
     def plot_bar_chart(self, df):
@@ -309,7 +303,7 @@ class StatisticsWindow(QMainWindow):
         self.plot_widget.show()
 
         self.plot_widget.clear()
-        dept_counts = df["院系"].value_counts()
+        dept_counts = df["Department"].value_counts()
         labels = dept_counts.index.tolist()
         values = dept_counts.values.tolist()
 
@@ -317,21 +311,20 @@ class StatisticsWindow(QMainWindow):
         bar = pg.BarGraphItem(x=x, height=values, width=0.6, brush='#00ACC1')
         self.plot_widget.addItem(bar)
 
-        # 添加数值标签
+        # Add value labels
         for i, v in enumerate(values):
             text = pg.TextItem(str(v), anchor=(0.5, 1.0))
             text.setPos(i, v)
             self.plot_widget.addItem(text)
 
-        # 设置坐标轴
+        # Set axis labels
         self.plot_widget.getAxis('bottom').setTicks([[(i, label) for i, label in enumerate(labels)]])
-        self.plot_widget.setTitle("院系人数分布")
-        self.plot_widget.setLabel('left', '人数')
+        self.plot_widget.setTitle("Department Population Distribution")
+        self.plot_widget.setLabel('left', 'Population')
 
-        # 调整显示范围
+        # Adjust display range
         self.plot_widget.setRange(xRange=[-0.5, len(labels) - 0.5],
                                   yRange=[0, max(values) * 1.2])
-
 
 def is_chinese(text):
     if not text:
@@ -343,39 +336,39 @@ def is_chinese(text):
 
 def validate_name(name):
     if not name or not is_chinese(name) or len(name) < 2 or len(name) > 10:
-        return False, "姓名必须是2-10个汉字"
+        return False, "Name must be 2-10 Chinese characters"
     return True, ""
 
 def validate_gender(gender):
-    if gender not in ["男", "女"]:
-        return False, "性别必须是男或女"
+    if gender not in ["Male", "Female"]:
+        return False, "Gender must be male or female"
     return True, ""
 
 def validate_department(department, valid_departments):
     if not department or department not in valid_departments:
-        return False, f"院系必须是以下之一：{', '.join(valid_departments)}"
+        return False, f"Department must be one of: {', '.join(valid_departments)}"
     return True, ""
 
 def validate_major(major):
     if not major or not is_chinese(major) or len(major) < 2 or len(major) > 15:
-        return False, "专业必须是2-15个汉字"
+        return False, "Major must be 2-15 Chinese characters"
     return True, ""
 
 def validate_ethnicity(ethnicity):
     if ethnicity and (not is_chinese(ethnicity) or len(ethnicity) > 6):
-        return False, "民族必须是汉字且不超过6个字"
+        return False, "Ethnicity must be Chinese and no more than 6 characters"
     return True, ""
 
 def validate_province(province):
     if province and (not is_chinese(province) or len(province) > 10):
-        return False, "省份必须是汉字且不超过10个字"
+        return False, "Province must be Chinese and no more than 10 characters"
     return True, ""
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("学生基本信息管理")
+        self.setWindowTitle("Student Basic Information Management")
         self.setGeometry(100, 100, 1000, 700)
 
         # 创建状态栏
@@ -390,8 +383,8 @@ class MainWindow(QMainWindow):
         # 搜索栏
         search_layout = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("输入姓名搜索")
-        self.search_button = QPushButton("搜索")
+        self.search_input.setPlaceholderText("Enter name to search")
+        self.search_button = QPushButton("Search")
         self.search_button.clicked.connect(self.search_data)
         search_layout.addWidget(self.search_input)
         search_layout.addWidget(self.search_button)
@@ -407,12 +400,12 @@ class MainWindow(QMainWindow):
 
         # 设置列宽比例
         column_widths = {
-            "姓名": 100,
-            "性别": 60,
-            "民族": 80,
-            "院系": 150,
-            "专业": 150,
-            "省份": 100
+            "Name": 100,
+            "Gender": 60,
+            "Ethnicity": 80,
+            "Department": 150,
+            "Major": 150,
+            "Province": 100
         }
 
         # 应用列宽设置
@@ -425,25 +418,21 @@ class MainWindow(QMainWindow):
 
         # 保存setup_columns方法供后续使用
         self.setup_columns = setup_columns
-
-
-
-
         # 操作按钮
         button_layout = QHBoxLayout()
-        self.add_button = QPushButton("新增")
+        self.add_button = QPushButton("Add")
         self.add_button.setIcon(QIcon("icons/add.png"))
         self.add_button.setIconSize(QSize(16, 16))
 
-        self.edit_button = QPushButton("编辑")
+        self.edit_button = QPushButton("Edit")
         self.edit_button.setIcon(QIcon("icons/edit.png"))
         self.edit_button.setIconSize(QSize(16, 16))
 
-        self.delete_button = QPushButton("删除")
+        self.delete_button = QPushButton("Delete")
         self.delete_button.setIcon(QIcon("icons/delete.png"))
         self.delete_button.setIconSize(QSize(16, 16))
 
-        self.stats_button = QPushButton("查看统计")
+        self.stats_button = QPushButton("View Statistics")
         self.stats_button.setIcon(QIcon("icons/stats.png"))
         self.stats_button.setIconSize(QSize(16, 16))
 
@@ -510,17 +499,17 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # 加载学生数据
-        self.file_path = "data/学生数据示例.xlsx"
+        # load data
+        self.file_path = "data\student_dataset_example.csv"
         self.df = self.load_student_data()
         self.display_data(self.df)
         self.update_status_bar()
 
     def load_student_data(self):
         try:
-            return pd.read_excel(self.file_path)
+            return pd.read_csv(self.file_path)
         except FileNotFoundError:
-            QMessageBox.critical(self, "错误", "学生数据文件未找到！")
+            QMessageBox.critical(self, "Error", "Student data file not found！")
             return pd.DataFrame()
 
     def display_data(self, df):
@@ -537,7 +526,7 @@ class MainWindow(QMainWindow):
             items = []
             for i, row in enumerate(df.itertuples(index=False)):
                 for j, value in enumerate(row):
-                    display_value = "无" if pd.isna(value) else str(value)
+                    display_value = "No Data" if pd.isna(value) else str(value)
                     item = QTableWidgetItem(display_value)
                     items.append((i, j, item))
 
@@ -554,7 +543,7 @@ class MainWindow(QMainWindow):
 
     def update_status_bar(self):
         record_count = self.table.rowCount()
-        self.status_bar.showMessage(f"当前记录数：{record_count}")
+        self.status_bar.showMessage(f"Current record count: {record_count}")
 
     def search_data(self):
         search_term = self.search_input.text().strip().lower()
@@ -574,7 +563,7 @@ class MainWindow(QMainWindow):
             filtered_df = self.df[mask]
 
             if filtered_df.empty:
-                QMessageBox.information(self, "提示", "未找到匹配的记录")
+                QMessageBox.information(self, "Hint", "No matching records found")
                 return
 
             # 显示筛选后的数据
@@ -585,7 +574,7 @@ class MainWindow(QMainWindow):
                 self.table.setUpdatesEnabled(True)
 
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"搜索时出错：{str(e)}")
+            QMessageBox.critical(self, "Error", f"Error during search: {str(e)}")
 
         self.update_status_bar()
 
@@ -602,50 +591,50 @@ class MainWindow(QMainWindow):
 
         for display_row, (_, row) in enumerate(filtered_df.iterrows()):
             for col, value in enumerate(row):
-                display_value = "无" if pd.isna(value) else str(value)
+                display_value = "No Data" if pd.isna(value) else str(value)
                 item = QTableWidgetItem(display_value)
                 self.table.setItem(display_row, col, item)
 
         self.table.setSortingEnabled(True)
 
     def add_record(self):
-        valid_departments = set(self.df["院系"].unique())
+        valid_departments = set(self.df["Department"].unique())
         new_values = {}
-        columns_order = ["姓名", "性别", "民族", "院系", "专业", "省份"]
+        columns_order = ["Name", "Gender", "Ethnicity", "Department", "Major", "Province"]
 
         for column in columns_order:
             while True:
-                if column == "姓名":
-                    value, ok = QInputDialog.getText(self, "新增记录", "请输入姓名（必填，2-10个汉字）：")
+                if column == "Name":
+                    value, ok = QInputDialog.getText(self, "Add Record", "Please enter name (required, 2-10 Chinese characters):")
                     if not ok:  # 用户点击取消，直接退出整个方法
                         return
                     valid, msg = validate_name(value)
                     required = True
 
-                elif column == "性别":
-                    value, ok = QInputDialog.getText(self, "新增记录", "请输入性别（必填，男/女）：")
+                elif column == "Gender":
+                    value, ok = QInputDialog.getText(self, "Add Record", "Please enter gender (required, Male/Female):")
                     if not ok:
                         return
                     valid, msg = validate_gender(value)
                     required = True
 
-                elif column == "院系":
-                    value, ok = QInputDialog.getText(self, "新增记录",
-                                                     f"请输入院系（必填，{', '.join(valid_departments)}）：")
+                elif column == "Department":
+                    value, ok = QInputDialog.getText(self, "Add Record",
+                                                     f"Please enter department (required, {', '.join(valid_departments)}):")
                     if not ok:
                         return
                     valid, msg = validate_department(value, valid_departments)
                     required = True
 
-                elif column == "专业":
-                    value, ok = QInputDialog.getText(self, "新增记录", "请输入专业（必填，2-20个汉字）：")
+                elif column == "Major":
+                    value, ok = QInputDialog.getText(self, "Add Record", "Please enter major (required, 2-20 Chinese characters):")
                     if not ok:
                         return
                     valid, msg = validate_major(value)
                     required = True
 
-                elif column == "民族":
-                    value, ok = QInputDialog.getText(self, "新增记录", "请输入民族（选填，限10个汉字以内）：")
+                elif column == "Ethnicity":
+                    value, ok = QInputDialog.getText(self, "Add Record", "Please enter ethnicity (optional, no more than 10 Chinese characters):")
                     if not ok:
                         return
                     if not value:  # 允许为空
@@ -655,7 +644,7 @@ class MainWindow(QMainWindow):
                     required = False
 
                 else:  # 省份
-                    value, ok = QInputDialog.getText(self, "新增记录", "请输入省份（选填，限10个汉字以内）：")
+                    value, ok = QInputDialog.getText(self, "Add Record", "Please enter province (optional, no more than 10 Chinese characters):")
                     if not ok:
                         return
                     if not value:  # 允许为空
@@ -665,8 +654,8 @@ class MainWindow(QMainWindow):
                     required = False
 
                 if not valid:
-                    reply = QMessageBox.warning(self, "警告",
-                                                f"{msg}\n是否重新输入？",
+                    reply = QMessageBox.warning(self, "Warning",
+                                                f"{msg}\nDo you want to re-enter?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
                     if reply == QMessageBox.StandardButton.No:
                         return
@@ -689,9 +678,9 @@ class MainWindow(QMainWindow):
             self.df.to_excel(self.file_path, index=False)
             self.display_data(self.df)
             self.update_status_bar()
-            QMessageBox.information(self, "成功", "记录添加成功！")
+            QMessageBox.information(self, "Success", "Record added successfully!")
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"保存数据失败：{str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to save data: {str(e)}")
 
     def get_original_row_index(self, display_row):
         """获取显示行号对应的原始数据索引"""
@@ -701,58 +690,58 @@ class MainWindow(QMainWindow):
         display_row = self.table.currentRow()
         selected_col = self.table.currentColumn()
         if display_row < 0:
-            QMessageBox.warning(self, "警告", "请先选择要编辑的记录！")
+            QMessageBox.warning(self, "Warning", "Please select a record to edit!")
             return
 
         try:
             # 获取原始数据行索引
             selected = self.get_original_row_index(display_row)
-            valid_departments = set(self.df["院系"].unique())
+            valid_departments = set(self.df["Department"].unique())
             current_record = self.df.iloc[selected]
 
             # 如果选择了特定列（单击某个单元格）
             if selected_col >= 0:
                 column_name = self.df.columns[selected_col]
-                current_value = "无" if pd.isna(current_record[column_name]) else str(current_record[column_name])
+                current_value = "No Data" if pd.isna(current_record[column_name]) else str(current_record[column_name])
 
                 # 根据不同列使用相应的验证规则
                 while True:
-                    if column_name == "姓名":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         "请输入姓名（2-10个汉字）：", text=current_value)
+                    if column_name == "Name":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         "Please enter name (2-10 Chinese characters):", text=current_value)
                         if not ok:
                             return
                         valid, msg = validate_name(value)
-                    elif column_name == "性别":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         "请输入性别（男/女）：", text=current_value)
+                    elif column_name == "Gender":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         "Please enter gender (Male/Female):", text=current_value)
                         if not ok:
                             return
                         valid, msg = validate_gender(value)
-                    elif column_name == "院系":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         f"请输入院系（{', '.join(valid_departments)}）：",
+                    elif column_name == "Department":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         f"Please enter department ({', '.join(valid_departments)}):",
                                                          text=current_value)
                         if not ok:
                             return
                         valid, msg = validate_department(value, valid_departments)
-                    elif column_name == "专业":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         "请输入专业（2-20个汉字）：", text=current_value)
+                    elif column_name == "Major":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         "Please enter major (2-20 Chinese characters):", text=current_value)
                         if not ok:
                             return
                         valid, msg = validate_major(value)
-                    elif column_name == "民族":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         "请输入民族（选填，限10个汉字以内）：", text=current_value)
+                    elif column_name == "Ethnicity":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         "Please enter ethnicity (optional, no more than 10 Chinese characters):", text=current_value)
                         if not ok:
                             return
                         if not value:  # 允许为空
                             break
                         valid, msg = validate_ethnicity(value)
-                    elif column_name == "省份":
-                        value, ok = QInputDialog.getText(self, "编辑记录",
-                                                         "请输入省份（选填，限10个汉字以内）：", text=current_value)
+                    elif column_name == "Province":
+                        value, ok = QInputDialog.getText(self, "Edit Record",
+                                                         "Please enter province (optional, no more than 10 Chinese characters):", text=current_value)
                         if not ok:
                             return
                         if not value:  # 允许为空
@@ -760,7 +749,7 @@ class MainWindow(QMainWindow):
                         valid, msg = validate_province(value)
 
                     if not valid:
-                        QMessageBox.warning(self, "警告", msg)
+                        QMessageBox.warning(self, "Warning", msg)
                         continue
                     break
 
@@ -774,62 +763,62 @@ class MainWindow(QMainWindow):
                     self.df.to_excel(self.file_path, index=False)
 
                     # 只更新修改的单元格
-                    display_value = "无" if pd.isna(value) else str(value)
+                    display_value = "No Data" if pd.isna(value) else str(value)
                     self.table.item(display_row, selected_col).setText(display_value)
 
                     self.update_status_bar()
-                    QMessageBox.information(self, "成功", "记录更新成功！")
+                    QMessageBox.information(self, "Success", "Record updated successfully!")
                 except Exception as e:
-                    QMessageBox.critical(self, "错误", f"保存数据失败：{str(e)}")
+                    QMessageBox.critical(self, "Error", f"Failed to save data: {str(e)}")
 
             # 如果选择了整行（全部编辑）
             else:
-                columns_order = ["姓名", "性别", "民族", "院系", "专业", "省份"]
+                columns_order = ["Name", "Gender", "Ethnicity", "Department", "Major", "Province"]
                 new_values = {}
 
                 for column in columns_order:
-                    current_value = "无" if pd.isna(current_record[column]) else str(current_record[column])
+                    current_value = "No Data" if pd.isna(current_record[column]) else str(current_record[column])
 
                     while True:
-                        if column == "姓名":
-                            value, ok = QInputDialog.getText(self, "编辑记录",
-                                                             "请输入姓名（2-10个汉字）：", text=current_value)
+                        if column == "Name":
+                            value, ok = QInputDialog.getText(self, "Edit Record",
+                                                             "Please enter name (2-10 Chinese characters):", text=current_value)
                             if not ok:
                                 return
                             valid, msg = validate_name(value)
-                        elif column == "性别":
-                            value, ok = QInputDialog.getText(self, "编辑记录",
-                                                             "请输入性别（男/女）：", text=current_value)
+                        elif column == "Gender":
+                            value, ok = QInputDialog.getText(self, "Edit Record",
+                                                             "Please enter gender (Male/Female):", text=current_value)
                             if not ok:
                                 return
                             valid, msg = validate_gender(value)
-                        elif column == "院系":
-                            value, ok = QInputDialog.getText(self, "编辑记录",
-                                                             f"请输入院系（{', '.join(valid_departments)}）：",
+                        elif column == "Department":
+                            value, ok = QInputDialog.getText(self, "Edit Record",
+                                                             f"Please enter department ({', '.join(valid_departments)}):",
                                                              text=current_value)
                             if not ok:
                                 return
                             valid, msg = validate_department(value, valid_departments)
-                        elif column == "专业":
-                            value, ok = QInputDialog.getText(self, "编辑记录",
-                                                             "请输入专业（2-20个汉字）：", text=current_value)
+                        elif column == "Major":
+                            value, ok = QInputDialog.getText(self, "Edit Record",
+                                                             "Please enter major (2-20 Chinese characters):", text=current_value)
                             if not ok:
                                 return
                             valid, msg = validate_major(value)
-                        elif column in ["民族", "省份"]:
-                            prompt = "民族" if column == "民族" else "省份"
-                            value, ok = QInputDialog.getText(self, "编辑记录",
-                                                             f"请输入{prompt}（选填，限10个汉字以内）：",
+                        elif column in ["Ethnicity", "Province"]:
+                            prompt = "Ethnicity" if column == "Ethnicity" else "Province"
+                            value, ok = QInputDialog.getText(self, "Edit Record",
+                                                             f"Please enter {prompt} (optional, no more than 10 Chinese characters):",
                                                              text=current_value)
                             if not ok:
                                 return
                             if not value:  # 允许为空
                                 value = None
                                 break
-                            valid, msg = validate_ethnicity(value) if column == "民族" else validate_province(value)
+                            valid, msg = validate_ethnicity(value) if column == "Ethnicity" else validate_province(value)
 
                         if not valid:
-                            QMessageBox.warning(self, "警告", msg)
+                            QMessageBox.warning(self, "Warning", msg)
                             continue
                         break
 
@@ -848,17 +837,17 @@ class MainWindow(QMainWindow):
                     # 更新表格显示
                     for col, column_name in enumerate(self.df.columns):
                         value = new_values.get(column_name)
-                        display_value = "无" if pd.isna(value) else str(value)
+                        display_value = "No Data" if pd.isna(value) else str(value)
                         self.table.item(display_row, col).setText(display_value)
 
                     self.update_status_bar()
-                    QMessageBox.information(self, "成功", "记录更新成功！")
+                    QMessageBox.information(self, "Success", "Record updated successfully!")
 
                 except Exception as e:
-                    QMessageBox.critical(self, "错误", f"保存数据失败：{str(e)}")
+                    QMessageBox.critical(self, "Error", f"Failed to save data: {str(e)}")
 
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"编辑记录时出错：{str(e)}")
+            QMessageBox.critical(self, "Error", f"Error during record editing: {str(e)}")
 
         finally:
             # 强制刷新表格
@@ -869,7 +858,7 @@ class MainWindow(QMainWindow):
         selected_col = self.table.currentColumn()
 
         if display_row < 0:
-            QMessageBox.warning(self, "警告", "请先选择要删除的记录！")
+            QMessageBox.warning(self, "Warning", "Please select a record to delete!")
             return
 
         # 获取原始数据索引
@@ -881,23 +870,23 @@ class MainWindow(QMainWindow):
             current_value = self.table.item(display_row, selected_col).text()
 
             # 检查是否是必填字段
-            if column_name in ["姓名", "性别", "院系", "专业"]:
-                QMessageBox.warning(self, "警告", f"{column_name}是必填信息，不能删除！")
+            if column_name in ["Name", "Gender", "Department", "Major"]:
+                QMessageBox.warning(self, "Warning", f"{column_name} is a required field and cannot be deleted!")
                 return
 
             # 检查当前值，不区分是否为空，使用统一的提示框样式
             msg_box = QMessageBox()
-            msg_box.setWindowTitle("确认操作")
-            if current_value == "无":
-                msg_box.setText(f"当前{column_name}信息为空，是否删除整行数据？")
-                btn_yes = msg_box.addButton("是", QMessageBox.ButtonRole.YesRole)
-                btn_no = msg_box.addButton("否", QMessageBox.ButtonRole.NoRole)
+            msg_box.setWindowTitle("Confirm Operation")
+            if current_value == "No Data":
+                msg_box.setText(f"The current {column_name} information is empty, do you want to delete the entire row?")
+                btn_yes = msg_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+                btn_no = msg_box.addButton("No", QMessageBox.ButtonRole.NoRole)
                 msg_box.setDefaultButton(btn_no)
             else:
-                msg_box.setText(f"请选择操作：")
-                btn_delete_cell = msg_box.addButton(f"1. 删除此{column_name}信息",
+                msg_box.setText("Please select an operation:")
+                btn_delete_cell = msg_box.addButton(f"1. Delete this {column_name} information",
                                                     QMessageBox.ButtonRole.AcceptRole)
-                btn_delete_row = msg_box.addButton("2. 删除整行数据",
+                btn_delete_row = msg_box.addButton("2. Delete entire row",
                                                    QMessageBox.ButtonRole.DestructiveRole)
                 msg_box.setDefaultButton(btn_delete_cell)
 
@@ -909,43 +898,43 @@ class MainWindow(QMainWindow):
                 return
 
             try:
-                if current_value == "无":
+                if current_value == "No Data":
                     if clicked_button == btn_yes:
                         # 删除整行
                         self.df = self.df.drop(original_row).reset_index(drop=True)
                         self.df.to_excel(self.file_path, index=False)
                         self.display_data(self.df)
-                        success_msg = "整行记录已删除"
+                        success_msg = "Entire row record deleted"
                     else:
                         return
                 else:
                     if clicked_button == btn_delete_cell:
                         # 仅删除单元格内容
                         self.df.at[original_row, column_name] = None
-                        self.table.item(display_row, selected_col).setText("无")
-                        success_msg = f"{column_name}信息已删除"
+                        self.table.item(display_row, selected_col).setText("No Data")
+                        success_msg = f"{column_name} information deleted"
                     elif clicked_button == btn_delete_row:
                         # 删除整行
                         self.df = self.df.drop(original_row).reset_index(drop=True)
                         self.df.to_excel(self.file_path, index=False)
                         self.display_data(self.df)
-                        success_msg = "整行记录已删除"
+                        success_msg = "Entire row record deleted"
                     else:
                         return
 
                 self.update_status_bar()
-                QMessageBox.information(self, "成功", success_msg)
+                QMessageBox.information(self, "Success", success_msg)
 
             except Exception as e:
-                QMessageBox.critical(self, "错误", f"删除失败：{str(e)}")
+                QMessageBox.critical(self, "Error", f"Deletion failed: {str(e)}")
 
         else:
             # 删除整行
             msg_box = QMessageBox()
-            msg_box.setWindowTitle("确认删除")
-            msg_box.setText("确定要删除这条记录吗？\n此操作不可撤销！")
-            btn_yes = msg_box.addButton("1. 是", QMessageBox.ButtonRole.YesRole)
-            btn_no = msg_box.addButton("2. 否", QMessageBox.ButtonRole.NoRole)
+            msg_box.setWindowTitle("Confirm Deletion")
+            msg_box.setText("Are you sure you want to delete this record?\nThis operation cannot be undone!")
+            btn_yes = msg_box.addButton("1. Yes", QMessageBox.ButtonRole.YesRole)
+            btn_no = msg_box.addButton("2. No", QMessageBox.ButtonRole.NoRole)
             msg_box.setDefaultButton(btn_no)
 
             msg_box.exec()
@@ -955,9 +944,9 @@ class MainWindow(QMainWindow):
                     self.df.to_excel(self.file_path, index=False)
                     self.display_data(self.df)
                     self.update_status_bar()
-                    QMessageBox.information(self, "成功", "记录删除成功！")
+                    QMessageBox.information(self, "Success", "Record deleted successfully!")
                 except Exception as e:
-                    QMessageBox.critical(self, "错误", f"删除记录失败：{str(e)}")
+                    QMessageBox.critical(self, "Error", f"Failed to delete record: {str(e)}")
 
     def show_statistics(self):
         self.stats_window = StatisticsWindow(self.df)
