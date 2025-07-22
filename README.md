@@ -35,7 +35,7 @@ pip install -r requirements.txt
    admin:admin123
    user1:password1
    ```
-2. Prepare the student data Excel file at `data/学生数据示例.xlsx` (or rename as needed). The columns should be:
+2. Prepare the student data Excel file at `data/student_dataset_example.csv` (or rename as needed). The columns should be:
    - Name, Gender, Ethnicity, Department, Major, Province
 3. Run the application:
    ```bash
